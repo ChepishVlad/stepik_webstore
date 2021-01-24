@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import pytest
 from selenium import webdriver
+from selenium.webdriver.chrome.options import Options as ChromeOptions
 
 
 def pytest_addoption(parser):
@@ -12,18 +13,18 @@ def pytest_addoption(parser):
 
 @pytest.fixture()
 def browser(request):
-    browser_name = request.config.getoption('browser_name')
+    user_language = request.config.getoption("language")
+    browser_name = request.config.getoption("browser_name")
     browser = None
     if browser_name == 'chrome':
-        browser = webdriver.Chrome()
+        options = ChromeOptions()
+        options.add_experimental_option('prefs', {'intl.accept_languages': user_language})
+        browser = webdriver.Chrome(options=options)
     elif browser_name == 'firefox':
-        browser = webdriver.Firefox()
+        fp = webdriver.FirefoxProfile()
+        fp.set_preference("intl.accept_languages", user_language)
+        browser = webdriver.Firefox(firefox_profile=fp)
     else:
         raise pytest.UsageError('--browser_name should be chrome or firefox')
     yield browser
     browser.quit()
-
-
-@pytest.fixture()
-def language(request):
-    yield request.config.getoption('language')
